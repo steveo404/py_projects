@@ -1,6 +1,7 @@
 # Script Name:  PicSort_RemoveDups
 # Author:       Steveo
-# 
+# Version:      3.1
+#
 # Purpose:
 # Script analyzes pictures for duplicates using a imagehash
 # Duplicates are placed in the ~/Projects/duplicates folder
@@ -16,6 +17,7 @@ from PIL import Image
 import imagehash
 
 import time
+import random
 
 # Function creates folders by month and year
 def createfolder(yearStamp, monthStamp, pictureFile, fileName):
@@ -53,6 +55,11 @@ currentDirectory = getfolderlocation()
 fileName = "/home/dale/Projects/logfile.txt"
 logOutput = open(fileName, 'a')
 
+duplicateLog = "/home/dale/Projects/duplicatelogfile.txt"
+# delete log if exists
+if os.path.exists(duplicateLog):
+    os.remove(duplicateLog)
+
 # Function creates folders based on file stamps
 # Then moves the picture to the folder
 
@@ -60,8 +67,10 @@ count = 0
 dupCount = 0
 removedCount = 0
 notRemoved = 0
+errorCount = 0
 
-imglist = []
+#imglist = []
+imglist = {}
 
 # Destination for duplicate pictures
 duppath = "/home/dale/Projects/duplicates"
@@ -73,14 +82,26 @@ for root, dirs, files in os.walk(currentDirectory):
             picFileDirectory = os.path.join(root, picFile)
 
             pichash = imagehash.average_hash(Image.open(picFileDirectory))
-      
-            if pichash in imglist:
+            # Some pic files have error (ffffffff0000000)generating imagehash
+            # Instead, assign a random number
+            # RISK - still end up with duplicates
+            if str(pichash) == "ffffffff0000000":
+                pichash = random.random()
+                errorcount += 1
+            if pichash in imglist:  # checking dictionary for existing imagehash
+                #if pichash <> ffffffff00000000:
+                dupLogOutput = open(duplicateLog, 'a')
                 print("found match")
                 print(picFileDirectory)
                 os.rename(picFileDirectory, duppath + "/" + picFile)
+                dupLogOutput.write(picFile + ", " + imglist[pichash] + ", ")
+                dupLogOutput.write(str(pichash))
+                dupLogOutput.write('\n')
+                dupLogOutput.close
                 dupCount += 1
             else:  # added to not put duplicate in list
-                imglist.append(pichash)
+                # imglist.append(pichash)
+                
                 f = open(picFileDirectory, 'rb')
 
                 tags = exifread.process_file(f)
@@ -101,6 +122,7 @@ for root, dirs, files in os.walk(currentDirectory):
                 else:
                     yearTaken = ""
                     monthTaken = ""
+                imglist[pichash] = yearTaken + "/" + monthTaken + "/" + picFile
         # Remove legacy Windows Thumbs.db files
         elif picFile.endswith(".db"):
             dbFileDirectory = os.path.join(root, picFile)
@@ -117,6 +139,7 @@ print(count, "Files moved")
 print(removedCount, "Files removed")
 print(notRemoved, "Files not moved or removed")
 print(dupCount, "Duplicate files placed in %s folder" % duppath)
+print(errorcount, "Error hashes")
 
 localtime = time.asctime( time.localtime(time.time()) )
 

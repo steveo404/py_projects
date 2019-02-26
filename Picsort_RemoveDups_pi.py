@@ -8,6 +8,7 @@
 # Images are then move to their respective folder
 
 import os
+import sys
 import exifread
 from Tkinter import *
 import Tkinter, tkFileDialog
@@ -19,8 +20,10 @@ import time
 
 # Function creates folders by month and year
 def createfolder(yearStamp, monthStamp, pictureFile, fileName):
-    yearFilePath = "/home/dale/Projects/testoutput/" + yearStamp
-    monthFilePath = "/home/dale/Projects/testoutput/" + yearStamp + "/" + monthStamp
+    yearFilePath = outputDirectory + "/" + yearStamp
+    #yearFilePath = "/home/dale/Projects/testoutput/" + yearStamp
+    monthFilePath = outputDirectory + "/" + yearStamp + "/" + monthStamp
+    #monthFilePath = "/home/dale/Projects/testoutput/" + yearStamp + "/" + monthStamp
 
     if not os.path.exists(yearFilePath):
         os.makedirs(yearFilePath)
@@ -39,15 +42,20 @@ def removeemptydirectory():
             deletedDirectories = deletedDirectories + 1
     print deletedDirectories, "Directories removed"
     
-def getfolderlocation(): 
+def getfolderlocation(foldertitle): 
     root = Tk()
     root.withdraw()
-    file_path = tkFileDialog.askdirectory()
+    file_path = tkFileDialog.askdirectory(title = foldertitle)
     return file_path
 
 #currentDirectory = "/home/dale/Projects/testdirectory/"
 #currentDirectory = "/media/dale/6480F4E580F4BE9C/MyPictures/Summer/"
-currentDirectory = getfolderlocation()
+currentDirectory = getfolderlocation("Choose INPUT folder")
+outputDirectory = getfolderlocation("Choose OUTPUT folder")
+
+# Destination for duplicate pictures
+duppath = getfolderlocation("DUPLICATES folder")
+
 
 # log file to show what was moved/deleted/etc
 fileName = "/home/dale/Projects/logfile.txt"
@@ -63,8 +71,6 @@ notRemoved = 0
 
 imglist = []
 
-# Destination for duplicate pictures
-duppath = "/home/dale/Projects/duplicates"
 
 # traverse directory for files
 for root, dirs, files in os.walk(currentDirectory):

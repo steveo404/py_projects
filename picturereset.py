@@ -39,7 +39,17 @@ for root, dirs, files in os.walk(currentDirectory):
             os.rename(picFileDirectory, movedPicFile)
             
             count += 1
-                
+#  NEW PART ADDED              
+dupFilePath = "/home/dale/Projects/duplicates"
+for root, dirs, files in os.walk(dupFilePath):
+    for picFile in files:
+        if picFile.endswith(".jpg") or picFile.endswith(".JPG"):
+            picFileDirectory = os.path.join(root, picFile)
+            movedPicFile = originalFilePath + "/" + picFile
+            os.rename(picFileDirectory, movedPicFile)
+            
+            count += 1
+
 print (count, "Files moved")
 
 removeemptydirectory()
